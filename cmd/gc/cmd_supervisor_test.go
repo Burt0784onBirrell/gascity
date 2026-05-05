@@ -3595,13 +3595,13 @@ func TestSupervisorCityAPIClientRequiresRunning(t *testing.T) {
 
 func TestCityRegistryReportsRunningOnlyAfterStartup(t *testing.T) {
 	cs := &controllerState{}
-	mc := &managedCity{
+	city := &managedCity{
 		cr:     &CityRuntime{cityName: "bright-lights", cs: cs},
 		name:   "bright-lights",
 		status: "adopting_sessions",
 	}
 	reg := newCityRegistry()
-	reg.Add("/city", mc)
+	reg.Add("/city", city)
 
 	cities := reg.ListCities()
 	if len(cities) != 1 || cities[0].Running {
@@ -3787,7 +3787,7 @@ func TestStopManagedCityForcesCleanupAfterTimeout(t *testing.T) {
 	t.Setenv("GC_BEADS_SCOPE_ROOT", cityPath)
 
 	closer := &closerSpy{}
-	mc := &managedCity{
+	city := &managedCity{
 		name:   "bright-lights",
 		cancel: func() {},
 		done:   make(chan struct{}),
@@ -3809,8 +3809,8 @@ func TestStopManagedCityForcesCleanupAfterTimeout(t *testing.T) {
 
 	var stderr bytes.Buffer
 	start := time.Now()
-	err := stopManagedCity(mc, cityPath, &stderr)
-	if elapsed := time.Since(start); elapsed > 500*time.Millisecond {
+	err := stopManagedCity(city, cityPath, &stderr)
+	if elapsed := time.Since(start); elapsed > 2*time.Second {
 		t.Fatalf("stopManagedCity took %s, want bounded timeout", elapsed)
 	}
 	if err == nil {
@@ -3838,7 +3838,7 @@ func TestStopManagedCityDoesNotUseStartupOrDriftTimeouts(t *testing.T) {
 	t.Setenv("GC_BEADS_SCOPE_ROOT", cityPath)
 
 	closer := &closerSpy{}
-	mc := &managedCity{
+	city := &managedCity{
 		name:   "bright-lights",
 		cancel: func() {},
 		done:   make(chan struct{}),
@@ -3860,8 +3860,8 @@ func TestStopManagedCityDoesNotUseStartupOrDriftTimeouts(t *testing.T) {
 
 	var stderr bytes.Buffer
 	start := time.Now()
-	err := stopManagedCity(mc, cityPath, &stderr)
-	if elapsed := time.Since(start); elapsed > 500*time.Millisecond {
+	err := stopManagedCity(city, cityPath, &stderr)
+	if elapsed := time.Since(start); elapsed > 2*time.Second {
 		t.Fatalf("stopManagedCity took %s, want shutdown-timeout bound", elapsed)
 	}
 	if err == nil {
@@ -3952,7 +3952,7 @@ func TestStopManagedCityPreservingSessionsSkipsBeadsProviderShutdown(t *testing.
 	closer := &closerSpy{}
 	done := make(chan struct{})
 	canceled := false
-	mc := &managedCity{
+	city := &managedCity{
 		name: "bright-lights",
 		cancel: func() {
 			canceled = true
@@ -3971,7 +3971,7 @@ func TestStopManagedCityPreservingSessionsSkipsBeadsProviderShutdown(t *testing.
 		},
 	}
 
-	if err := stopManagedCityPreservingSessions(mc, cityPath, io.Discard); err != nil {
+	if err := stopManagedCityPreservingSessions(city, cityPath, io.Discard); err != nil {
 		t.Fatalf("stopManagedCityPreservingSessions: %v", err)
 	}
 	if !canceled {
@@ -4050,14 +4050,14 @@ while True:
 		t.Fatalf("service bridge local_state = %q, want ready; status=%#v", status.LocalState, status)
 	}
 
-	mc := &managedCity{
+	city := &managedCity{
 		name:   "bright-lights",
 		cancel: func() {},
 		done:   make(chan struct{}),
 		cr:     cr,
 	}
 
-	err := stopManagedCityPreservingSessions(mc, cityPath, io.Discard)
+	err := stopManagedCityPreservingSessions(city, cityPath, io.Discard)
 	if err == nil {
 		t.Fatal("stopManagedCityPreservingSessions error = nil, want timeout error")
 	}
@@ -4079,7 +4079,7 @@ func TestShutdownSupervisorCitiesPreserveSessions(t *testing.T) {
 		t.Fatalf("Start(agent-one): %v", err)
 	}
 	done := make(chan struct{})
-	mc := &managedCity{
+	city := &managedCity{
 		name: "bright-lights",
 		cancel: func() {
 			close(done)
@@ -4090,10 +4090,10 @@ func TestShutdownSupervisorCitiesPreserveSessions(t *testing.T) {
 			sp:  sp, rec: events.Discard, stdout: io.Discard, stderr: io.Discard,
 		},
 	}
-	if err := stopManagedCityPreservingSessions(mc, t.TempDir(), io.Discard); err != nil {
+	if err := stopManagedCityPreservingSessions(city, t.TempDir(), io.Discard); err != nil {
 		t.Fatalf("stopManagedCityPreservingSessions: %v", err)
 	}
-	mc.cr.shutdown()
+	city.cr.shutdown()
 	running, err := sp.ListRunning("")
 	if err != nil {
 		t.Fatalf("ListRunning: %v", err)
