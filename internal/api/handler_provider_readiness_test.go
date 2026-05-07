@@ -415,11 +415,14 @@ func TestHandleProviderReadinessFreshBypassesCache(t *testing.T) {
 	t.Setenv("HOME", homeDir)
 	originalPathEnv := providerProbePathEnv
 	originalCommandContext := providerProbeCommandContext
+	originalCommandTimeout := providerProbeCommandTimeout
 	providerProbePathEnv = binDir
 	providerProbeCommandContext = exec.CommandContext
+	providerProbeCommandTimeout = 15 * time.Second
 	defer func() {
 		providerProbePathEnv = originalPathEnv
 		providerProbeCommandContext = originalCommandContext
+		providerProbeCommandTimeout = originalCommandTimeout
 	}()
 
 	state := newFakeState(t)
@@ -551,11 +554,14 @@ printf '%s\n' '{"loggedIn":false,"authMethod":"claude.ai","apiProvider":"firstPa
 	t.Setenv("HOME", homeDir)
 	originalPathEnv := providerProbePathEnv
 	originalCommandContext := providerProbeCommandContext
+	originalCommandTimeout := providerProbeCommandTimeout
 	providerProbePathEnv = binDir
 	providerProbeCommandContext = exec.CommandContext
+	providerProbeCommandTimeout = 15 * time.Second
 	defer func() {
 		providerProbePathEnv = originalPathEnv
 		providerProbeCommandContext = originalCommandContext
+		providerProbeCommandTimeout = originalCommandTimeout
 	}()
 
 	state := newFakeState(t)
@@ -576,11 +582,14 @@ printf '%s\n' 'not-json'
 	t.Setenv("HOME", homeDir)
 	originalPathEnv := providerProbePathEnv
 	originalCommandContext := providerProbeCommandContext
+	originalCommandTimeout := providerProbeCommandTimeout
 	providerProbePathEnv = binDir
 	providerProbeCommandContext = exec.CommandContext
+	providerProbeCommandTimeout = 15 * time.Second
 	defer func() {
 		providerProbePathEnv = originalPathEnv
 		providerProbeCommandContext = originalCommandContext
+		providerProbeCommandTimeout = originalCommandTimeout
 	}()
 
 	state := newFakeState(t)
@@ -601,11 +610,14 @@ printf '%s\n' 'not-json'
 	t.Setenv("HOME", homeDir)
 	originalPathEnv := providerProbePathEnv
 	originalCommandContext := providerProbeCommandContext
+	originalCommandTimeout := providerProbeCommandTimeout
 	providerProbePathEnv = binDir
 	providerProbeCommandContext = exec.CommandContext
+	providerProbeCommandTimeout = 15 * time.Second
 	defer func() {
 		providerProbePathEnv = originalPathEnv
 		providerProbeCommandContext = originalCommandContext
+		providerProbeCommandTimeout = originalCommandTimeout
 	}()
 
 	state := newFakeState(t)
