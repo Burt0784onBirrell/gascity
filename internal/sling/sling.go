@@ -17,6 +17,7 @@ import (
 	"github.com/gastownhall/gascity/internal/config"
 	"github.com/gastownhall/gascity/internal/formula"
 	"github.com/gastownhall/gascity/internal/molecule"
+	"github.com/gastownhall/gascity/internal/pathutil"
 	"github.com/gastownhall/gascity/internal/runtime"
 	"github.com/gastownhall/gascity/internal/shellquote"
 	workdirutil "github.com/gastownhall/gascity/internal/workdir"
@@ -770,8 +771,9 @@ func BeadMetadataTarget(store beads.Store, beadID string) string {
 // fl.Rigs[<name>]) are reachable when an agent is configured with a path
 // instead of a name. Without this resolution the lookup silently falls
 // back to fl.City and pack-imported formulas appear "not found in search
-// paths" even though `gc formula list` discovers them via the cooked
-// dolt store. See gastownhall/gascity#1801.
+// paths" — `gc formula list` would still find them by scanning every
+// configured search path (city + every rig), so the lookup-versus-list
+// asymmetry is the surface symptom. See gastownhall/gascity#1801.
 func SlingFormulaSearchPaths(deps SlingDeps, a config.Agent) []string {
 	if deps.Cfg == nil {
 		return nil
@@ -785,7 +787,8 @@ func SlingFormulaSearchPaths(deps SlingDeps, a config.Agent) []string {
 //   - a.Dir is a rig name (`dir = "gascity"`) — return as-is after a
 //     defensive existence check against cfg.Rigs.
 //   - a.Dir is a filesystem path (`dir = "/home/ds/gascity"`) — find the
-//     rig whose Path matches and return its Name.
+//     rig whose Path matches (after symlink resolution + normalization)
+//     and return its Name.
 //
 // Returns "" when the agent is city-scoped (a.Dir empty) or no rig
 // matches; SearchPaths handles "" by returning city-level layers.
@@ -803,7 +806,12 @@ func rigNameForAgent(cfg *config.City, a config.Agent) string {
 		if strings.TrimSpace(r.Path) == "" {
 			continue
 		}
-		if r.Path == dir {
+		// Use SamePath so paths that differ only by trailing slashes,
+		// symlink resolution (/tmp vs /private/tmp on macOS), or other
+		// normalization quirks still match. Strict string equality
+		// would re-introduce the #1801 fall-through under those
+		// conditions.
+		if pathutil.SamePath(r.Path, dir) {
 			return r.Name
 		}
 	}

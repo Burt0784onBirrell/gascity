@@ -3044,6 +3044,33 @@ func TestSlingFormulaSearchPaths_CityScoped(t *testing.T) {
 	}
 }
 
+// TestSlingFormulaSearchPaths_RigPathKey_TrailingSlash: agent.Dir with a
+// trailing slash should match the rig path after normalization. Strict
+// string equality (which the first version of this fix used) re-introduces
+// the #1801 fall-through whenever the operator writes `dir =
+// "/home/ds/gascity/"` in agent.toml.
+func TestSlingFormulaSearchPaths_RigPathKey_TrailingSlash(t *testing.T) {
+	cfg := &config.City{
+		Rigs: []config.Rig{
+			{Name: "gascity", Path: "/home/ds/gascity"},
+		},
+		FormulaLayers: config.FormulaLayers{
+			City: []string{"/city/formulas"},
+			Rigs: map[string][]string{
+				"gascity": {"/rig/formulas"},
+			},
+		},
+	}
+	a := config.Agent{Name: "polecat", Dir: "/home/ds/gascity/"}
+	deps := SlingDeps{Cfg: cfg}
+
+	got := SlingFormulaSearchPaths(deps, a)
+	want := []string{"/rig/formulas"}
+	if len(got) != 1 || got[0] != want[0] {
+		t.Fatalf("SlingFormulaSearchPaths(trailing-slash dir) = %v, want %v", got, want)
+	}
+}
+
 // TestSlingFormulaSearchPaths_UnknownDir: agent.Dir matching neither a
 // rig name nor a rig path should fall back to fl.City (the existing
 // SearchPaths fallback when the rig key is absent).
