@@ -6,8 +6,9 @@
 # out to `gh` for gh:run / gh:pr gates, and fresh cities without
 # `gh auth` would otherwise fail this order on every 30s cooldown.
 # bd's combined output reaches the controller log only on non-zero
-# exit (cmd/gc/order_dispatch.go:466-475), so suppressing gh-gate
-# errors also hides real bd errors on that line — diagnose by hand.
+# exit (see the `if err != nil` branch of `dispatchOne` in
+# cmd/gc/order_dispatch.go), so suppressing gh-gate errors also
+# hides real bd errors on that line — diagnose by hand.
 #
 # Timer-gate evaluation is local-only (no `gh` shell-out, no auth
 # requirement) so its failures should propagate to the controller log.
