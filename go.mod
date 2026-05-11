@@ -4,6 +4,8 @@ go 1.22
 
 // Personal fork of gastownhall/gascity for learning Ethereum tooling.
 // Upstream: https://github.com/gastownhall/gascity
+// Note: Pinning go-ethereum to v1.13.14 intentionally - v1.14.x has breaking
+// API changes in the accounts/abi package that I haven't migrated to yet.
 
 require (
 	github.com/ethereum/go-ethereum v1.13.14
